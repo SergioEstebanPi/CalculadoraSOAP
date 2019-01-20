@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated 20/01/2019 11:49:57 AM by Hibernate Tools 4.3.1 -->
+<hibernate-mapping>
+    <class name="com.prueba.calculadorasoap.entity.Operacion" table="operacion" catalog="calculadorasoap" optimistic-lock="version">
+        <id name="id" type="java.lang.Integer">
+            <column name="id" />
+            <generator class="identity" />
+        </id>
+        <property name="intA" type="java.lang.Integer">
+            <column name="intA" />
+        </property>
+        <property name="intB" type="java.lang.Integer">
+            <column name="intB" />
+        </property>
+        <property name="intCadd" type="java.lang.Integer">
+            <column name="intCAdd" />
+        </property>
+        <property name="intCsub" type="java.lang.Integer">
+            <column name="intCSub" />
+        </property>
+        <property name="intCmul" type="java.lang.Integer">
+            <column name="intCMul" />
+        </property>
+        <property name="intCdiv" type="java.lang.Integer">
+            <column name="intCDiv" />
+        </property>
+        <property name="fecha" type="date">
+            <column name="fecha" length="10" not-null="true" />
+        </property>
+    </class>
+</hibernate-mapping>

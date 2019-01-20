@@ -1,0 +1,4 @@
+#NOTE: This is an internal implementation file, its format can be changed without prior notice.
+#Wed Oct 31 23:36:21 COT 2018
+default-http\://repo.maven.apache.org/maven2/.lastUpdated=1541046981262
+http\://repo.maven.apache.org/maven2/.error=Could not transfer artifact org.hibernate\:hibernate-core\:jar\:5.2.16.Final from/to central (http\://repo.maven.apache.org/maven2)\: GET request of\: org/hibernate/hibernate-core/5.2.16.Final/hibernate-core-5.2.16.Final.jar from central failed

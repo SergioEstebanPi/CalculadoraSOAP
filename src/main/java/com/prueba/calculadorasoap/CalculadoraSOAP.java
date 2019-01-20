@@ -37,7 +37,7 @@ import org.tempuri.CalculatorSoap;
  * @author mac
  */
 public class CalculadoraSOAP {
-    
+
     public static void main(String[] args) {
         String opcion = "";
         do {
@@ -83,7 +83,7 @@ public class CalculadoraSOAP {
                         break;
                     case "3":
                         if (calculadoraSOAP.borrarDatosUserREST(session) == 0) {
-                            transaction.commit();                            
+                            transaction.commit();
                         }
                         break;
                     case "4":
@@ -100,7 +100,7 @@ public class CalculadoraSOAP {
         } while (!"4".equals(opcion));
         System.exit(0);
     }
-    
+
     public int borrarDatosUserREST(Session session) {
         SQLQuery query = session.createSQLQuery("TRUNCATE TABLE USER;");
         if (query.executeUpdate() == 0) {
@@ -111,7 +111,7 @@ public class CalculadoraSOAP {
             return -1;
         }
     }
-    
+
     public int consumirServicioCalculador(Session session) {
         /* Se solicitan los valores a operar */
         int intA = 0;
@@ -166,7 +166,7 @@ public class CalculadoraSOAP {
         JOptionPane.showMessageDialog(null, resultados);
         return 0;
     }
-    
+
     public int consumirServicioREST(Session session) {
         /* conexion para obtener el JSON */
         JSONParser parser = new JSONParser();
