@@ -122,15 +122,39 @@ public class CalculadoraSOAP {
 
             }
             System.out.println("es " + jsonstring);
-            JSONArray jSONArray = (JSONArray) parser.parse(jsonstring);
+            JSONArray listaUsers = (JSONArray) parser.parse(jsonstring);
 
             // Loop through each item
-            for (Object object : jSONArray) {
-                JSONObject jSONObject = (JSONObject) object;
-                Long id = (Long) jSONObject.get("id");
+            for (Object object : listaUsers) {
+                /* users */
+                JSONObject user = (JSONObject) object;
+                Long id = (Long) user.get("id");
                 System.out.println("id : " + id);
-                String title = (String) jSONObject.get("name");
+                String title = (String) user.get("name");
                 System.out.println("name : " + title);
+                String username = (String) user.get("username");
+                System.out.println("username : " + username);   
+                String email = (String) user.get("email");
+                System.out.println("email : " + email);    
+                /* address */
+                JSONObject address = (JSONObject) user.get("address");
+                System.out.println("street : " + address.get("street"));
+                System.out.println("suite : " + address.get("suite"));  
+                System.out.println("city : " + address.get("city"));  
+                System.out.println("zipcode : " + address.get("zipcode"));
+                /* geo */
+                JSONObject geo = (JSONObject) address.get("geo");
+                System.out.println("lat : " + geo.get("lat"));  
+                System.out.println("lng : " + geo.get("lng")); 
+                /* phone */
+                System.out.println("phone : " + user.get("phone")); 
+                /* website */
+                System.out.println("website : " + user.get("website")); 
+                /* company */
+                JSONObject company = (JSONObject) user.get("company");
+                System.out.println("name : " + company.get("name")); 
+                System.out.println("catchPhrase : " + company.get("catchPhrase")); 
+                System.out.println("bs : " + company.get("bs")); 
                 System.out.println("\n");
             }
             bufferedReader.close();
