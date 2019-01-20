@@ -7,6 +7,8 @@ package com.prueba.calculadorasoap;
 
 import com.prueba.calculadorasoap.config.NewHibernateUtil;
 import com.prueba.calculadorasoap.entity.Operacion;
+import com.prueba.calculadorasoap.entity.User;
+import java.awt.HeadlessException;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -21,8 +23,8 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
-import net.minidev.json.parser.ParseException;
 import org.hibernate.HibernateException;
+import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.json.simple.JSONArray;
@@ -35,37 +37,82 @@ import org.tempuri.CalculatorSoap;
  * @author mac
  */
 public class CalculadoraSOAP {
-
+    
     public static void main(String[] args) {
-        /* Se inicia la conexion con la base de datos */
-        Session session = null;
-        Transaction transaction = null;
+        String opcion = "";
+        do {
+            /* muestra el menu para seleccionar una opcion */
+            opcion = JOptionPane.showInputDialog("MENU \n"
+                    + "1. CalculadoraSOAP \n"
+                    + "2. Guardar Users REST \n"
+                    + "3. Borrar datos Users REST \n"
+                    + "4. Salir del programa \n"
+                    + "Seleccione una opcion:");
 
-        try {
-            session = NewHibernateUtil.getSessionFactory().openSession();
-            transaction = session.beginTransaction();
-        } catch (HibernateException exception) {
-            if (session != null) {
-                session.close();
+            /* Se crea el objeto que permite consumir el servicio y guardar el json */
+ /* Se inicia la conexion con la base de datos */
+            Session session = null;
+            Transaction transaction = null;
+            try {
+                session = NewHibernateUtil.getSessionFactory().openSession();
+                transaction = session.beginTransaction();
+            } catch (HibernateException exception) {
+                if (session != null) {
+                    session.close();
+                }
+                if (transaction != null) {
+                    transaction.rollback();
+                }
+                JOptionPane.showMessageDialog(null, "No se pudo realizar la conexion a la base de datos: " + exception.getMessage());
+                return;
             }
-            if (transaction != null) {
-                transaction.rollback();
+            CalculadoraSOAP calculadoraSOAP = new CalculadoraSOAP();
+            try {
+                switch (opcion) {
+                    case "1":
+                        if (calculadoraSOAP.consumirServicioCalculador(session) == 0) {
+                            transaction.commit();
+                            JOptionPane.showMessageDialog(null, "Servicio calculadora consumido correctamente");
+                        }
+                        break;
+                    case "2":
+                        if (calculadoraSOAP.consumirServicioREST(session) == 0) {
+                            transaction.commit();
+                            JOptionPane.showMessageDialog(null, "Servicio REST consumido correctamente");
+                        }
+                        break;
+                    case "3":
+                        if (calculadoraSOAP.borrarDatosUserREST(session) == 0) {
+                            transaction.commit();                            
+                        }
+                        break;
+                    case "4":
+                        System.exit(0);
+                        break;
+                    default:
+                        JOptionPane.showMessageDialog(null, "Ha seleccionado una opcion incorrecta");
+                        break;
+                }
+            } catch (HeadlessException | HibernateException exception) {
+                JOptionPane.showMessageDialog(null, "No es posible insertar los registros borre la tabla antes con la opcion 3");
             }
-            JOptionPane.showMessageDialog(null, "No se pudo realizar la conexion: " + exception.getMessage());
-        }
-
-        /* Se crea el objeto que permite consumir el servicio y guardar el json */
-        CalculadoraSOAP calculadoraSOAP = new CalculadoraSOAP();
-        //calculadoraSOAP.consumirServicioCalculador(session);
-        calculadoraSOAP.consumirServicioREST(session);
-        transaction.commit();
-        session.close();
-        JOptionPane.showMessageDialog(null, "El programa ha terminado");
-        System.out.println("Programa ha terminado");
+            session.close();
+        } while (!"4".equals(opcion));
         System.exit(0);
     }
-
-    public void consumirServicioCalculador(Session session) {
+    
+    public int borrarDatosUserREST(Session session) {
+        SQLQuery query = session.createSQLQuery("TRUNCATE TABLE USER;");
+        if (query.executeUpdate() == 0) {
+            JOptionPane.showMessageDialog(null, "Datos de user eliminados correctamente");
+            return 0;
+        } else {
+            JOptionPane.showMessageDialog(null, "No fue posible eliminar los registros users");
+            return -1;
+        }
+    }
+    
+    public int consumirServicioCalculador(Session session) {
         /* Se solicitan los valores a operar */
         int intA = 0;
         int intB = 0;
@@ -74,6 +121,7 @@ public class CalculadoraSOAP {
             intB = Integer.parseInt(JOptionPane.showInputDialog("Ingrese el valor de intB"));
         } catch (NumberFormatException numberFormatException) {
             JOptionPane.showMessageDialog(null, "Debe ingresar valores enteros: " + numberFormatException.getMessage());
+            return -1;
         }
         /* Se crea el objeto que consume el servicio */
         URL url = null;
@@ -82,15 +130,16 @@ public class CalculadoraSOAP {
         } catch (MalformedURLException ex) {
             JOptionPane.showMessageDialog(null, "No fue posible realizar la conexion con el servicio: " + ex.getMessage());
             Logger.getLogger(CalculadoraSOAP.class.getName()).log(Level.SEVERE, null, ex);
+            return -1;
         }
         QName qname = new QName("http://tempuri.org/", "Calculator");
         Service service = Service.create(url, qname);
-        System.out.println(service.getServiceName());
         CalculatorSoap calculatorSoap = service.getPort(CalculatorSoap.class);
         /* Se ejecutan las operaciones remotas */
         int intCAdd = calculatorSoap.add(intA, intB);
         int intCSub = calculatorSoap.subtract(intA, intB);
         int intCMul = calculatorSoap.multiply(intA, intB);
+        Integer intCDiv = null;
         /* Se almacenan los resultados en la base de datos */
         Operacion operacion = new Operacion();
         operacion.setIntA(intA);
@@ -100,107 +149,77 @@ public class CalculadoraSOAP {
         operacion.setIntCsub(intCSub);
         operacion.setIntCmul(intCMul);
         if (intB == 0) {
-            JOptionPane.showMessageDialog(null, "No es posible realizar la division por cero el resultado sera null");
-            operacion.setIntCdiv(null);
+            operacion.setIntCdiv(intCDiv);
         } else {
-            operacion.setIntCdiv(calculatorSoap.divide(intA, intB));
+            intCDiv = calculatorSoap.divide(intA, intB);
+            operacion.setIntCdiv(intCDiv);
         }
+        String resultados
+                = "Parametros: \n"
+                + "intA = " + intA + ", intB = " + intB + "\n"
+                + "Resultados: \n"
+                + "suma = " + intCAdd + "\n"
+                + "resta = " + intCSub + "\n"
+                + "multiplicacion = " + intCMul + "\n"
+                + "division = " + (intCDiv == null ? "Indefinido" : "" + intCDiv);
         session.save(operacion);
+        JOptionPane.showMessageDialog(null, resultados);
+        return 0;
     }
-
-    public void consumirServicioREST(Session session) {
+    
+    public int consumirServicioREST(Session session) {
+        /* conexion para obtener el JSON */
         JSONParser parser = new JSONParser();
         try {
             URL url = new URL("https://jsonplaceholder.typicode.com/users");
             URLConnection uRLConnection = url.openConnection();
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(uRLConnection.getInputStream()));
-
             String inputLine = "";
             String jsonstring = "";
             while ((inputLine = bufferedReader.readLine()) != null) {
                 jsonstring += inputLine;
-
             }
-            System.out.println("es " + jsonstring);
             JSONArray listaUsers = (JSONArray) parser.parse(jsonstring);
-
-            // Loop through each item
             for (Object object : listaUsers) {
+                User user = new User();
                 /* users */
-                JSONObject user = (JSONObject) object;
-                Long id = (Long) user.get("id");
-                System.out.println("id : " + id);
-                String title = (String) user.get("name");
-                System.out.println("name : " + title);
-                String username = (String) user.get("username");
-                System.out.println("username : " + username);   
-                String email = (String) user.get("email");
-                System.out.println("email : " + email);    
+                JSONObject jsonUser = (JSONObject) object;
+                int id = Integer.parseInt(String.valueOf(jsonUser.get("id")));
+                user.setId(id);
+                user.setName((String) jsonUser.get("name"));
+                user.setUsername((String) jsonUser.get("username"));
+                user.setEmail((String) jsonUser.get("email"));
                 /* address */
-                JSONObject address = (JSONObject) user.get("address");
-                System.out.println("street : " + address.get("street"));
-                System.out.println("suite : " + address.get("suite"));  
-                System.out.println("city : " + address.get("city"));  
-                System.out.println("zipcode : " + address.get("zipcode"));
+                JSONObject address = (JSONObject) jsonUser.get("address");
+                user.setStreet((String) address.get("street"));
+                user.setSuite((String) address.get("suite"));
+                user.setCity((String) address.get("city"));
+                user.setZipcode((String) address.get("zipcode"));
                 /* geo */
                 JSONObject geo = (JSONObject) address.get("geo");
-                System.out.println("lat : " + geo.get("lat"));  
-                System.out.println("lng : " + geo.get("lng")); 
+                user.setLat(Double.parseDouble((String) geo.get("lat")));
+                user.setLng(Double.parseDouble((String) geo.get("lng")));
                 /* phone */
-                System.out.println("phone : " + user.get("phone")); 
+                user.setPhone((String) jsonUser.get("phone"));
                 /* website */
-                System.out.println("website : " + user.get("website")); 
+                user.setWebsite((String) jsonUser.get("website"));
                 /* company */
-                JSONObject company = (JSONObject) user.get("company");
-                System.out.println("name : " + company.get("name")); 
-                System.out.println("catchPhrase : " + company.get("catchPhrase")); 
-                System.out.println("bs : " + company.get("bs")); 
-                System.out.println("\n");
+                JSONObject company = (JSONObject) jsonUser.get("company");
+                user.setCompanyName((String) company.get("name"));
+                user.setCatchPhrase((String) company.get("catchPhrase"));
+                user.setBs((String) company.get("bs"));
+                session.save(user);
             }
             bufferedReader.close();
         } catch (FileNotFoundException | org.json.simple.parser.ParseException exception) {
             JOptionPane.showMessageDialog(null, "Error: " + exception.getMessage());
             Logger.getLogger(CalculadoraSOAP.class.getName()).log(Level.SEVERE, null, exception);
+            return -1;
         } catch (IOException ex) {
             Logger.getLogger(CalculadoraSOAP.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(null, "Error: " + ex.getMessage());
+            return -1;
         }
-
-        /*
-
-        Company company = new Company();
-        company.setId(2);
-        company.setCatchPhrase("something");
-        company.setBs("other");
-        session.save(company);
-
-        Company company2 = new Company();
-        company2.setId(3);
-        company2.setCatchPhrase("something1");
-        company2.setBs("other");
-        session.save(company2);
-
-        Company company3 = new Company();
-        company3.setId(4);
-        company3.setCatchPhrase("something2");
-        company3.setBs("other");
-        session.save(company3);
-
-        User user = new User();
-        user.setId(1);
-        user.setUsername("programador123");
-        user.setName("pepe");
-        user.setEmail("pepe@hotmail.com");
-        user.setCompany(company);
-        user.setSuite("suite");
-        user.setStreet("street");
-        user.setCity("city");
-        user.setLat(1.333);
-        user.setLng(2.3333);
-        user.setWebsite("");
-        user.setZipcode("23512 15251235");
-        user.setPhone("4133355153");
-        session.save(user);
-
-         */
+        return 0;
     }
 }

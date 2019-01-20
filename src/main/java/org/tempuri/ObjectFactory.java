@@ -54,30 +54,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link AddResponse }
-     * 
-     */
-    public AddResponse createAddResponse() {
-        return new AddResponse();
-    }
-
-    /**
-     * Create an instance of {@link Add }
-     * 
-     */
-    public Add createAdd() {
-        return new Add();
-    }
-
-    /**
-     * Create an instance of {@link Subtract }
-     * 
-     */
-    public Subtract createSubtract() {
-        return new Subtract();
-    }
-
-    /**
      * Create an instance of {@link DivideResponse }
      * 
      */
@@ -91,6 +67,30 @@ public class ObjectFactory {
      */
     public SubtractResponse createSubtractResponse() {
         return new SubtractResponse();
+    }
+
+    /**
+     * Create an instance of {@link Add }
+     * 
+     */
+    public Add createAdd() {
+        return new Add();
+    }
+
+    /**
+     * Create an instance of {@link AddResponse }
+     * 
+     */
+    public AddResponse createAddResponse() {
+        return new AddResponse();
+    }
+
+    /**
+     * Create an instance of {@link Subtract }
+     * 
+     */
+    public Subtract createSubtract() {
+        return new Subtract();
     }
 
 }

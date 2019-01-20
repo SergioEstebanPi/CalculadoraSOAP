@@ -1,13 +1,10 @@
 package com.prueba.calculadorasoap.entity;
-// Generated 20/01/2019 04:58:23 AM by Hibernate Tools 4.3.1
+// Generated 20/01/2019 11:49:57 AM by Hibernate Tools 4.3.1
 
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
@@ -21,7 +18,6 @@ public class User  implements java.io.Serializable {
 
 
      private int id;
-     private Company company;
      private String name;
      private String username;
      private String email;
@@ -33,13 +29,15 @@ public class User  implements java.io.Serializable {
      private double lng;
      private String phone;
      private String website;
+     private String companyName;
+     private String catchPhrase;
+     private String bs;
 
     public User() {
     }
 
-    public User(int id, Company company, String name, String username, String email, String street, String suite, String city, String zipcode, double lat, double lng, String phone, String website) {
+    public User(int id, String name, String username, String email, String street, String suite, String city, String zipcode, double lat, double lng, String phone, String website, String companyName, String catchPhrase, String bs) {
        this.id = id;
-       this.company = company;
        this.name = name;
        this.username = username;
        this.email = email;
@@ -51,6 +49,9 @@ public class User  implements java.io.Serializable {
        this.lng = lng;
        this.phone = phone;
        this.website = website;
+       this.companyName = companyName;
+       this.catchPhrase = catchPhrase;
+       this.bs = bs;
     }
    
      @Id 
@@ -63,16 +64,6 @@ public class User  implements java.io.Serializable {
     
     public void setId(int id) {
         this.id = id;
-    }
-
-@ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="id_company", nullable=false)
-    public Company getCompany() {
-        return this.company;
-    }
-    
-    public void setCompany(Company company) {
-        this.company = company;
     }
 
     
@@ -183,6 +174,36 @@ public class User  implements java.io.Serializable {
     
     public void setWebsite(String website) {
         this.website = website;
+    }
+
+    
+    @Column(name="company_name", nullable=false, length=100)
+    public String getCompanyName() {
+        return this.companyName;
+    }
+    
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
+    }
+
+    
+    @Column(name="catchPhrase", nullable=false, length=100)
+    public String getCatchPhrase() {
+        return this.catchPhrase;
+    }
+    
+    public void setCatchPhrase(String catchPhrase) {
+        this.catchPhrase = catchPhrase;
+    }
+
+    
+    @Column(name="bs", nullable=false, length=100)
+    public String getBs() {
+        return this.bs;
+    }
+    
+    public void setBs(String bs) {
+        this.bs = bs;
     }
 
 

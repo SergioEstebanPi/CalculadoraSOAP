@@ -1,5 +1,5 @@
 package com.prueba.calculadorasoap.entity;
-// Generated 20/01/2019 04:58:23 AM by Hibernate Tools 4.3.1
+// Generated 20/01/2019 11:49:57 AM by Hibernate Tools 4.3.1
 
 
 import java.util.Date;
