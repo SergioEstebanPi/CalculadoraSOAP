@@ -7,16 +7,27 @@ package com.prueba.calculadorasoap;
 
 import com.prueba.calculadorasoap.config.NewHibernateUtil;
 import com.prueba.calculadorasoap.entity.Operacion;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
+import java.sql.Connection;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
+import net.minidev.json.parser.ParseException;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.tempuri.CalculatorSoap;
 
 /**
@@ -24,8 +35,38 @@ import org.tempuri.CalculatorSoap;
  * @author mac
  */
 public class CalculadoraSOAP {
-    
+
     public static void main(String[] args) {
+        /* Se inicia la conexion con la base de datos */
+        Session session = null;
+        Transaction transaction = null;
+
+        try {
+            session = NewHibernateUtil.getSessionFactory().openSession();
+            transaction = session.beginTransaction();
+        } catch (HibernateException exception) {
+            if (session != null) {
+                session.close();
+            }
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            JOptionPane.showMessageDialog(null, "No se pudo realizar la conexion: " + exception.getMessage());
+        }
+
+        /* Se crea el objeto que permite consumir el servicio y guardar el json */
+        CalculadoraSOAP calculadoraSOAP = new CalculadoraSOAP();
+        //calculadoraSOAP.consumirServicioCalculador(session);
+        calculadoraSOAP.consumirServicioREST(session);
+        transaction.commit();
+        session.close();
+        JOptionPane.showMessageDialog(null, "El programa ha terminado");
+        System.out.println("Programa ha terminado");
+        System.exit(0);
+    }
+
+    public void consumirServicioCalculador(Session session) {
+        /* Se solicitan los valores a operar */
         int intA = 0;
         int intB = 0;
         try {
@@ -34,6 +75,7 @@ public class CalculadoraSOAP {
         } catch (NumberFormatException numberFormatException) {
             JOptionPane.showMessageDialog(null, "Debe ingresar valores enteros: " + numberFormatException.getMessage());
         }
+        /* Se crea el objeto que consume el servicio */
         URL url = null;
         try {
             url = new URL("http://www.dneonline.com/calculator.asmx?WSDL");
@@ -45,14 +87,11 @@ public class CalculadoraSOAP {
         Service service = Service.create(url, qname);
         System.out.println(service.getServiceName());
         CalculatorSoap calculatorSoap = service.getPort(CalculatorSoap.class);
-        
+        /* Se ejecutan las operaciones remotas */
         int intCAdd = calculatorSoap.add(intA, intB);
         int intCSub = calculatorSoap.subtract(intA, intB);
         int intCMul = calculatorSoap.multiply(intA, intB);
-        
-        Session session = NewHibernateUtil.getSessionFactory().openSession();
-        Transaction transaction = session.beginTransaction();
-        
+        /* Se almacenan los resultados en la base de datos */
         Operacion operacion = new Operacion();
         operacion.setIntA(intA);
         operacion.setIntB(intB);
@@ -67,6 +106,40 @@ public class CalculadoraSOAP {
             operacion.setIntCdiv(calculatorSoap.divide(intA, intB));
         }
         session.save(operacion);
+    }
+
+    public void consumirServicioREST(Session session) {
+        JSONParser parser = new JSONParser();
+        try {
+            URL url = new URL("https://jsonplaceholder.typicode.com/users");
+            URLConnection uRLConnection = url.openConnection();
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(uRLConnection.getInputStream()));
+
+            String inputLine = "";
+            String jsonstring = "";
+            while ((inputLine = bufferedReader.readLine()) != null) {
+                jsonstring += inputLine;
+
+            }
+            System.out.println("es " + jsonstring);
+            JSONArray jSONArray = (JSONArray) parser.parse(jsonstring);
+
+            // Loop through each item
+            for (Object object : jSONArray) {
+                JSONObject jSONObject = (JSONObject) object;
+                Long id = (Long) jSONObject.get("id");
+                System.out.println("id : " + id);
+                String title = (String) jSONObject.get("name");
+                System.out.println("name : " + title);
+                System.out.println("\n");
+            }
+            bufferedReader.close();
+        } catch (FileNotFoundException | org.json.simple.parser.ParseException exception) {
+            JOptionPane.showMessageDialog(null, "Error: " + exception.getMessage());
+            Logger.getLogger(CalculadoraSOAP.class.getName()).log(Level.SEVERE, null, exception);
+        } catch (IOException ex) {
+            Logger.getLogger(CalculadoraSOAP.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         /*
 
@@ -105,11 +178,5 @@ public class CalculadoraSOAP {
         session.save(user);
 
          */
-        transaction.commit();
-        
-        session.close();
-        //System.out.println("registros insertados");
-        JOptionPane.showMessageDialog(null, "Se han registrado las operaciones correctamente");
-        
     }
 }
