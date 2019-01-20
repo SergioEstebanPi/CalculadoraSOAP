@@ -9,5 +9,38 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
+    </properties>    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jaxws-maven-plugin</artifactId>
+                <version>1.9</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>wsimport</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <keep>true</keep>
+                    <verbose>true</verbose>
+                    <wsdlDirectory>src/main/java/wsdl</wsdlDirectory>
+                    <wsdlFiles>
+                        <wsdlFile>calculator.wsdl</wsdlFile>
+                    </wsdlFiles>
+                    <sourceDestDir>src/main/java/</sourceDestDir>
+                </configuration>
+            </plugin>   
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>com.sun.xml.ws</groupId>
+            <artifactId>jaxws-rt</artifactId>
+            <version>2.2.5</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>    
 </project>
