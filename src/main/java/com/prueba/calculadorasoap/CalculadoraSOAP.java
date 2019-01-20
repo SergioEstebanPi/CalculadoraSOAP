@@ -5,18 +5,17 @@
  */
 package com.prueba.calculadorasoap;
 
-import config.NewHibernateUtil;
-import entity.Company;
-import entity.User;
+import com.prueba.calculadorasoap.config.NewHibernateUtil;
+import com.prueba.calculadorasoap.entity.Operacion;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
-import org.hibernate.Hibernate;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.tempuri.CalculatorSoap;
 
@@ -25,30 +24,51 @@ import org.tempuri.CalculatorSoap;
  * @author mac
  */
 public class CalculadoraSOAP {
-
+    
     public static void main(String[] args) {
+        int intA = 0;
+        int intB = 0;
+        try {
+            intA = Integer.parseInt(JOptionPane.showInputDialog("Ingrese el valor de intA"));
+            intB = Integer.parseInt(JOptionPane.showInputDialog("Ingrese el valor de intB"));
+        } catch (NumberFormatException numberFormatException) {
+            JOptionPane.showMessageDialog(null, "Debe ingresar valores enteros: " + numberFormatException.getMessage());
+        }
         URL url = null;
         try {
             url = new URL("http://www.dneonline.com/calculator.asmx?WSDL");
-            //URL url = new URL("http://localhost:7779/calculator");
         } catch (MalformedURLException ex) {
+            JOptionPane.showMessageDialog(null, "No fue posible realizar la conexion con el servicio: " + ex.getMessage());
             Logger.getLogger(CalculadoraSOAP.class.getName()).log(Level.SEVERE, null, ex);
         }
-        // 1st argument service URI, refer to wsdl document above NAMESPACE
-        // 2nd argument is service name, refer to wsdl document above
         QName qname = new QName("http://tempuri.org/", "Calculator");
-        //QName qname = new QName("http://calculator/", "CalculatorImplService");
         Service service = Service.create(url, qname);
         System.out.println(service.getServiceName());
         CalculatorSoap calculatorSoap = service.getPort(CalculatorSoap.class);
-
-        System.out.println(calculatorSoap.add(8, 6));
-        System.out.println(calculatorSoap.subtract(8, 6));
-        System.out.println(calculatorSoap.multiply(8, 6));
-        System.out.println(calculatorSoap.divide(8, 6));
-
+        
+        int intCAdd = calculatorSoap.add(intA, intB);
+        int intCSub = calculatorSoap.subtract(intA, intB);
+        int intCMul = calculatorSoap.multiply(intA, intB);
+        
         Session session = NewHibernateUtil.getSessionFactory().openSession();
         Transaction transaction = session.beginTransaction();
+        
+        Operacion operacion = new Operacion();
+        operacion.setIntA(intA);
+        operacion.setIntB(intB);
+        operacion.setFecha(new Date());
+        operacion.setIntCadd(intCAdd);
+        operacion.setIntCsub(intCSub);
+        operacion.setIntCmul(intCMul);
+        if (intB == 0) {
+            JOptionPane.showMessageDialog(null, "No es posible realizar la division por cero el resultado sera null");
+            operacion.setIntCdiv(null);
+        } else {
+            operacion.setIntCdiv(calculatorSoap.divide(intA, intB));
+        }
+        session.save(operacion);
+
+        /*
 
         Company company = new Company();
         company.setId(2);
@@ -84,10 +104,12 @@ public class CalculadoraSOAP {
         user.setPhone("4133355153");
         session.save(user);
 
+         */
         transaction.commit();
-
+        
         session.close();
-        System.out.println("registros insertados");
-
+        //System.out.println("registros insertados");
+        JOptionPane.showMessageDialog(null, "Se han registrado las operaciones correctamente");
+        
     }
 }

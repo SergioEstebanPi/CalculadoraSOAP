@@ -45,7 +45,8 @@ Contributor(s):
     <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
     <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/calculadorasoap?zeroDateTimeBehavior=convertToNull</property>
     <property name="hibernate.connection.username">root</property>
-    <mapping resource="com/prueba/calculadorasoap/User.hbm.xml"/>
-    <mapping resource="com/prueba/calculadorasoap/Company.hbm.xml"/>
+    <mapping resource="com/prueba/calculadorasoap/entity/Operacion.hbm.xml"/>
+    <mapping resource="com/prueba/calculadorasoap/entity/Company.hbm.xml"/>
+    <mapping resource="com/prueba/calculadorasoap/entity/User.hbm.xml"/>
   </session-factory>
 </hibernate-configuration>

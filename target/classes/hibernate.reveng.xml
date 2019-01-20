@@ -41,6 +41,7 @@ Contributor(s):
 -->
 <hibernate-reverse-engineering>
   <schema-selection match-catalog="calculadorasoap"/>
-  <table-filter match-name="company"/>
   <table-filter match-name="user"/>
+  <table-filter match-name="operacion"/>
+  <table-filter match-name="company"/>
 </hibernate-reverse-engineering>
